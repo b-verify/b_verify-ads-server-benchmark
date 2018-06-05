@@ -139,7 +139,8 @@ public class ProofGenerationMicroBenchmark {
 							CryptographicDigest.hash(("NEW VALUE").getBytes()))))
 					.stream().map(x -> x.getPublicKey()).collect(Collectors.toList());
 			this.signatures = updateRequest.getSignaturesList().stream().map(x -> x.toByteArray()).collect(Collectors.toList());
-			System.out.println("# of signatures: "+this.signers.size());
+			System.out.println("# of signers: "+this.signers.size()+" ("+this.signers+")");
+			System.out.println("# of signatures: "+this.signatures.size()+" ("+this.signatures+")");
 			assert this.signatures.size() == this.signers.size();
 		}
 
