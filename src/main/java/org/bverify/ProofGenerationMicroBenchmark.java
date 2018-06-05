@@ -59,7 +59,7 @@ import server.StartingData;
 
 public class ProofGenerationMicroBenchmark {
 
-	@State(Scope.Benchmark)
+	@State(Scope.Thread)
 	public static class BenchmarkState {
 
 		public BVerifyServerRequestVerifier handler;
