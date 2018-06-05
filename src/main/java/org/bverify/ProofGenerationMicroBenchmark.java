@@ -78,7 +78,7 @@ public class ProofGenerationMicroBenchmark {
 			int batchSize = 10000;
 			int nUpdateBatches = 10;
 			
-			File dataf = new File(System.getProperty("user.dir") + "/benchmarks/proof-throughput/test-data");
+			File dataf = new File(System.getProperty("user.dir") + "/test-data");
 			StartingData data = StartingData.loadFromFile(dataf);
 			this.server = new BVerifyServer(data, batchSize, false);
 			this.handler = server.getRequestHandler();
