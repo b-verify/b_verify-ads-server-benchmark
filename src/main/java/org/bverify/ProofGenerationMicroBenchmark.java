@@ -33,8 +33,12 @@ package org.bverify;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -46,6 +50,7 @@ import org.openjdk.jmh.infra.Blackhole;
 
 import client.Request;
 import crpyto.CryptographicDigest;
+import crpyto.CryptographicSignature;
 import mpt.core.Utils;
 import serialization.generated.BVerifyAPIMessageSerialization.PerformUpdateRequest;
 import server.BVerifyServer;
@@ -60,6 +65,10 @@ public class ProofGenerationMicroBenchmark {
 		public BVerifyServerRequestVerifier handler;
 		public BVerifyServer server;
 		public byte[] adsIdToRequestProofFor;
+		
+		public byte[] witness;
+		public List<byte[]> signatures;
+		public List<PublicKey> signers;
 
 		@Setup(Level.Trial)
 		public void doSetup() {
@@ -120,11 +129,30 @@ public class ProofGenerationMicroBenchmark {
 			}catch(RemoteException e) {
 				throw new RuntimeException(e.getMessage());
 			}
+			
+			// now creating an update to sign, for testing time to verify signature
+			PerformUpdateRequest updateRequest = request.createPerformUpdateRequest(this.adsIdToRequestProofFor, 
+					CryptographicDigest.hash(("NEW VALUE").getBytes()), 1, true);
+			System.out.println("update: "+updateRequest);
+			this.signers = request.getAccountsThatMustSign(
+					Arrays.asList(Map.entry(this.adsIdToRequestProofFor, 
+							CryptographicDigest.hash(("NEW VALUE").getBytes()))))
+					.stream().map(x -> x.getPublicKey()).collect(Collectors.toList());
+			this.signatures = updateRequest.getSignaturesList().stream().map(x -> x.toByteArray()).collect(Collectors.toList());
+			System.out.println("# of signatures: "+this.signers.size());
+			assert this.signatures.size() == this.signers.size();
 		}
 
 		@TearDown(Level.Trial)
 		public void doTearDown() {
 			this.server.shutdown();
+		}
+	}
+	
+	@Benchmark
+	public void testSignatureVerification(BenchmarkState s, Blackhole bh) {
+		for(int i = 0; i < s.signatures.size(); i++) {
+			bh.consume(CryptographicSignature.verify(s.witness, s.signatures.get(i), s.signers.get(i)));
 		}
 	}
 
