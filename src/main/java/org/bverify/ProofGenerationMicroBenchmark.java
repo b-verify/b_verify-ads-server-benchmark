@@ -138,9 +138,10 @@ public class ProofGenerationMicroBenchmark {
 					Arrays.asList(Map.entry(this.adsIdToRequestProofFor, 
 							CryptographicDigest.hash(("NEW VALUE").getBytes()))))
 					.stream().map(x -> x.getPublicKey()).collect(Collectors.toList());
+			this.witness = CryptographicDigest.hash(updateRequest.getUpdate().toByteArray());
 			this.signatures = updateRequest.getSignaturesList().stream().map(x -> x.toByteArray()).collect(Collectors.toList());
 			System.out.println("# of signers: "+this.signers.size()+" ("+this.signers+")");
-			System.out.println("# of signatures: "+this.signatures.size()+" ("+this.signatures+")");
+			System.out.println("# of signatures : "+this.signatures.size()+" ("+this.signatures+")");
 			assert this.signatures.size() == this.signers.size();
 		}
 
@@ -156,7 +157,7 @@ public class ProofGenerationMicroBenchmark {
 			bh.consume(CryptographicSignature.verify(s.witness, s.signatures.get(i), s.signers.get(i)));
 		}
 	}
-
+	
 	@Benchmark
 	public void testProofGeneration(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
