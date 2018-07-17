@@ -17,11 +17,13 @@ import client.Request;
 import crpyto.CryptographicDigest;
 import mpt.core.Utils;
 import serialization.generated.BVerifyAPIMessageSerialization.PerformUpdateRequest;
+import serialization.generated.BVerifyAPIMessageSerialization.ProveADSRootRequest;
+import serialization.generated.BVerifyAPIMessageSerialization.ProveADSRootResponse;
 import server.BVerifyServer;
 import server.BVerifyServerRequestVerifier;
 import server.StartingData;
 
-public class ProofGenerationMicroBenchmark {
+public class ProofMicroBenchmarks {
 	/**
 	 * TEST PARAMATERS
 	 */
@@ -34,8 +36,18 @@ public class ProofGenerationMicroBenchmark {
 	public static class BenchmarkState {
 
 		public BVerifyServer server;
+		
+		// proof production microbenchmarks
 		public BVerifyServerRequestVerifier handler;
-		public byte[] adsIdToRequestProofFor;		
+		public byte[] adsIdToRequestProofFor;	
+		
+		// proof verification microbenchmarks
+		public byte[] adsIdToCheckProofFor;
+		public ProveADSRootResponse proofToCheck;
+		// to use in checking the proof
+		public List<byte[]> commitments;
+		public Request request;
+		
 
 		@Setup(Level.Trial)
 		public void doSetup() {
@@ -44,11 +56,14 @@ public class ProofGenerationMicroBenchmark {
 			this.handler = server.getRequestHandler();
 		
 			// now do a bunch of updates
-			Request request = new Request(data);
+			this.request = new Request(data);
 			
-			// we check the proof for this 
+			// we get the proof for this ADS
 			List<byte[]> adsIds = request.getADSIds();
 			this.adsIdToRequestProofFor = adsIds.get(0);
+			
+			// we check the proof for this ADS
+			this.adsIdToCheckProofFor = adsIds.get(1);
 			
 			// do a bunch of (deterministic) updates
 			Random prng = new Random(924681);
@@ -58,7 +73,7 @@ public class ProofGenerationMicroBenchmark {
 						" (batch size: "+BATCH_SIZE+")");
 				for(int update = 1; update <= BATCH_SIZE; update++) {
 					// select a random ADS to update
-					int adsToUpdate = prng.nextInt(adsIds.size()-1)+1;
+					int adsToUpdate = prng.nextInt(adsIds.size()-2)+2;
 					byte[] adsIdToUpdate = adsIds.get(adsToUpdate);
 					byte[] newValue =  CryptographicDigest.hash(("NEW VALUE"+update).getBytes());
 					// create the update request
@@ -83,11 +98,20 @@ public class ProofGenerationMicroBenchmark {
 			}
 			System.out.println("all batches committed, commmitments: ");
 			try {
-				List<byte[]> commitments = server.getRequestHandler().commitments();
+				this.commitments = server.getRequestHandler().commitments();
 				for(int i = 0; i < commitments.size(); i++) {
-					System.out.println("#"+i+" - "+Utils.byteArrayAsHexString(commitments.get(i)));
+					System.out.println("#"+i+" - "+Utils.byteArrayAsHexString(this.commitments.get(i)));
 				}
 			}catch(RemoteException e) {
+				throw new RuntimeException(e.getMessage());
+			}
+			System.out.println("getting proof for verifiaction benchmark: ");
+			try {
+				ProveADSRootRequest proveRequest = Request.createProveADSRootRequest(this.adsIdToCheckProofFor);
+				byte[] response = this.handler.performUpdate(proveRequest.toByteArray());
+				this.proofToCheck = Request.parseProveADSResponse(response);
+				System.out.println("proof to check: "+this.proofToCheck);
+			}catch(Exception e) {
 				throw new RuntimeException(e.getMessage());
 			}
 			
@@ -99,14 +123,19 @@ public class ProofGenerationMicroBenchmark {
 		}
 	}
 		
-	@Benchmark
-	public void testFullProofGeneration(BenchmarkState s, Blackhole bh) {
-		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
-	}
+//	@Benchmark
+//	public void testFullProofGeneration(BenchmarkState s, Blackhole bh) {
+//		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
+//	}
+//	
+//	@Benchmark
+//	public void testProofUpdatesGeneration(BenchmarkState s, Blackhole bh) {
+//		bh.consume(s.handler.getProofUpdatesMICROBENCHMARK(s.adsIdToRequestProofFor));
+//	}
 	
 	@Benchmark
-	public void testProofUpdatesGeneration(BenchmarkState s, Blackhole bh) {
-		bh.consume(s.handler.getProofUpdatesMICROBENCHMARK(s.adsIdToRequestProofFor));
+	public void testProofVerficationTime(BenchmarkState s, Blackhole bh) {
+		bh.consume(s.handler.checkProofMICROBENCHAMRK(s.proofToCheck, s.request, s.adsIdToCheckProofFor, s.commitments));
 	}
 
 }
