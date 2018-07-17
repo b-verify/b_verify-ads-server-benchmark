@@ -48,6 +48,8 @@ public class ProofMicroBenchmarks {
 		public List<byte[]> commitments;
 		public Request request;
 		
+		
+		
 
 		@Setup(Level.Trial)
 		public void doSetup() {
@@ -133,19 +135,33 @@ public class ProofMicroBenchmarks {
 		}
 	}
 		
-//	@Benchmark
-//	public void testFullProofGeneration(BenchmarkState s, Blackhole bh) {
-//		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
-//	}
-//	
-//	@Benchmark
-//	public void testProofUpdatesGeneration(BenchmarkState s, Blackhole bh) {
-//		bh.consume(s.handler.getProofUpdatesMICROBENCHMARK(s.adsIdToRequestProofFor));
-//	}
+	@Benchmark
+	public void testFullProofGeneration(BenchmarkState s, Blackhole bh) {
+		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
+	}
+	
+	@Benchmark
+	public void testProofUpdatesGeneration(BenchmarkState s, Blackhole bh) {
+		bh.consume(s.handler.getProofUpdatesMICROBENCHMARK(s.adsIdToRequestProofFor));
+	}
 	
 	@Benchmark
 	public void testProofVerficationTime(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.checkProofMICROBENCHAMRK(s.proofToCheck, s.request, s.adsIdToCheckProofFor, s.commitments));
+	}
+	
+	@Benchmark
+	public void testSubmitUpdate(BenchmarkState s, Blackhole bh) {
+		PerformUpdateRequest updateRequest = s.request.createPerformUpdateRequest(s.adsIdToCheckProofFor, 
+				CryptographicDigest.hash("NEW VALUE".getBytes()), 
+				NUMBER_OF_UPDATE_BATCHES+1, true);
+		byte[] response = s.handler.performUpdate(updateRequest.toByteArray());
+		// request should be accepted
+		boolean accepted = Request.parsePerformUpdateResponse(response);
+		if(!accepted) {
+			throw new RuntimeException("something went wrong");
+		}
+		bh.consume(accepted);
 	}
 
 }
