@@ -152,20 +152,6 @@ public class ProofMicroBenchmarks {
 	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testProofVerficationTime(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.checkProofMICROBENCHAMRK(s.proofToCheck, s.request, s.adsIdToCheckProofFor, s.commitments));
-	}
-	
-	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS) 
-	public void testSubmitUpdate(BenchmarkState s, Blackhole bh) {
-		PerformUpdateRequest updateRequest = s.request.createPerformUpdateRequest(s.adsIdToCheckProofFor, 
-				CryptographicDigest.hash("NEW VALUE".getBytes()), 
-				NUMBER_OF_UPDATE_BATCHES+1, true);
-		byte[] response = s.handler.performUpdate(updateRequest.toByteArray());
-		// request should be accepted
-		boolean accepted = Request.parsePerformUpdateResponse(response);
-		if(!accepted) {
-			throw new RuntimeException("something went wrong");
-		}
-		bh.consume(accepted);
-	}
+	}	
 
 }
