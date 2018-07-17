@@ -78,6 +78,7 @@ public class ProofMicroBenchmarks {
 						updateRequest = request.createPerformUpdateRequest(this.adsIdToCheckProofFor, 
 								CryptographicDigest.hash("test".getBytes()), 
 								batch, true);
+						System.out.println("special update request: "+updateRequest);
 					}else {
 						// other updates are to random adses
 						// select a random ADS to update
@@ -117,7 +118,7 @@ public class ProofMicroBenchmarks {
 			System.out.println("getting proof for verifiaction benchmark: ");
 			try {
 				ProveADSRootRequest proveRequest = Request.createProveADSRootRequest(this.adsIdToCheckProofFor);
-				byte[] response = this.handler.performUpdate(proveRequest.toByteArray());
+				byte[] response = this.handler.proveADSRoot(proveRequest.toByteArray());
 				this.proofToCheck = Request.parseProveADSResponse(response);
 				System.out.println("proof to check: "+this.proofToCheck);
 			}catch(Exception e) {
