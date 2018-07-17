@@ -37,7 +37,7 @@ public class SubmitUpdateBenchmarks {
 		public BVerifyServerRequestVerifier handler;
 		public byte[] adsIdToUpdate;
 
-		@Setup(Level.Trial)
+		@Setup(Level.Iteration)
 		public void doSetup() {
 			StartingData data = StartingData.loadFromFile(MOCK_DATA_FILE);
 			this.server = new BVerifyServer(data, 2, false);
@@ -51,7 +51,7 @@ public class SubmitUpdateBenchmarks {
 			this.adsIdToUpdate = adsIds.get(0);
 		}
 
-		@TearDown(Level.Invocation)
+		@TearDown(Level.Iteration)
 		public void doTearDown() {
 			this.server.shutdown();
 		}
