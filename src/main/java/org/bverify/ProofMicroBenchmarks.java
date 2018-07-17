@@ -4,9 +4,13 @@ import java.io.File;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -135,22 +139,22 @@ public class ProofMicroBenchmarks {
 		}
 	}
 		
-	@Benchmark
+	@Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testFullProofGeneration(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
 	}
 	
-	@Benchmark
+	@Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testProofUpdatesGeneration(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.getProofUpdatesMICROBENCHMARK(s.adsIdToRequestProofFor));
 	}
 	
-	@Benchmark
+	@Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testProofVerficationTime(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.checkProofMICROBENCHAMRK(s.proofToCheck, s.request, s.adsIdToCheckProofFor, s.commitments));
 	}
 	
-	@Benchmark
+	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS) 
 	public void testSubmitUpdate(BenchmarkState s, Blackhole bh) {
 		PerformUpdateRequest updateRequest = s.request.createPerformUpdateRequest(s.adsIdToCheckProofFor, 
 				CryptographicDigest.hash("NEW VALUE".getBytes()), 

@@ -2,9 +2,13 @@ package org.bverify;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -33,7 +37,7 @@ public class SubmitUpdateBenchmarks {
 		public BVerifyServerRequestVerifier handler;
 		public byte[] adsIdToUpdate;
 
-		@Setup(Level.Trial)
+		@Setup(Level.Invocation)
 		public void doSetup() {
 			StartingData data = StartingData.loadFromFile(MOCK_DATA_FILE);
 			this.server = new BVerifyServer(data, 2, false);
@@ -47,13 +51,13 @@ public class SubmitUpdateBenchmarks {
 			this.adsIdToUpdate = adsIds.get(0);
 		}
 
-		@TearDown(Level.Trial)
+		@TearDown(Level.Invocation)
 		public void doTearDown() {
 			this.server.shutdown();
 		}
 	}
 		
-	@Benchmark
+	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testSubmitUpdate(BenchmarkState s, Blackhole bh) {
 		PerformUpdateRequest updateRequest = s.request.createPerformUpdateRequest(s.adsIdToUpdate, 
 				CryptographicDigest.hash("NEW VALUE".getBytes()), 1, true);
