@@ -139,17 +139,17 @@ public class ProofMicroBenchmarks {
 		}
 	}
 		
-	@Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testFullProofGeneration(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.proveADSRootMICROBENCHMARK(s.adsIdToRequestProofFor));
 	}
 	
-	@Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testProofUpdatesGeneration(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.getProofUpdatesMICROBENCHMARK(s.adsIdToRequestProofFor));
 	}
 	
-	@Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@Benchmark @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testProofVerficationTime(BenchmarkState s, Blackhole bh) {
 		bh.consume(s.handler.checkProofMICROBENCHAMRK(s.proofToCheck, s.request, s.adsIdToCheckProofFor, s.commitments));
 	}

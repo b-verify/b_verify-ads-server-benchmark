@@ -5,10 +5,14 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -53,7 +57,7 @@ public class SignatureVerificationMicroBenchmark {
 		
 	}
 	
-	@Benchmark
+	@Benchmark @BenchmarkMode(Mode.SingleShotTime)  @OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void testSignatureVerification(BenchmarkState s, Blackhole bh) {
 		for(int i = 0; i < s.signatures.size(); i++) {
 			bh.consume(CryptographicSignature.verify(s.witness, s.signatures.get(i), s.signers.get(i)));

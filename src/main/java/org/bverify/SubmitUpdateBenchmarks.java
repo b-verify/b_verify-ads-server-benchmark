@@ -37,7 +37,7 @@ public class SubmitUpdateBenchmarks {
 		public BVerifyServerRequestVerifier handler;
 		public byte[] adsIdToUpdate;
 
-		@Setup(Level.Invocation)
+		@Setup(Level.Trial)
 		public void doSetup() {
 			StartingData data = StartingData.loadFromFile(MOCK_DATA_FILE);
 			this.server = new BVerifyServer(data, 2, false);
