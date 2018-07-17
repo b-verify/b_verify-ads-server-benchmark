@@ -72,13 +72,22 @@ public class ProofMicroBenchmarks {
 				System.out.println("commiting batch #"+batch+" of "+NUMBER_OF_UPDATE_BATCHES+
 						" (batch size: "+BATCH_SIZE+")");
 				for(int update = 1; update <= BATCH_SIZE; update++) {
-					// select a random ADS to update
-					int adsToUpdate = prng.nextInt(adsIds.size()-2)+2;
-					byte[] adsIdToUpdate = adsIds.get(adsToUpdate);
-					byte[] newValue =  CryptographicDigest.hash(("NEW VALUE"+update).getBytes());
-					// create the update request
-					PerformUpdateRequest updateRequest = request.createPerformUpdateRequest(adsIdToUpdate, newValue, 
-							batch, false);
+					PerformUpdateRequest updateRequest = null;
+					// first update is to the ads we will check the proof for
+					if(update == 1 && batch == 1) {
+						updateRequest = request.createPerformUpdateRequest(this.adsIdToCheckProofFor, 
+								CryptographicDigest.hash("test".getBytes()), 
+								batch, true);
+					}else {
+						// other updates are to random adses
+						// select a random ADS to update
+						int adsToUpdate = prng.nextInt(adsIds.size()-2)+2;
+						byte[] adsIdToUpdate = adsIds.get(adsToUpdate);
+						byte[] newValue =  CryptographicDigest.hash(("NEW VALUE"+update).getBytes());
+						// create the update request
+						updateRequest = request.createPerformUpdateRequest(adsIdToUpdate, newValue, 
+								batch, false);
+					}
 					byte[] response = this.handler.performUpdate(updateRequest.toByteArray());
 					
 					// request should be accepted
